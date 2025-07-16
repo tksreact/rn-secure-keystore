@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import SecureStorage, {
   SecureStorageError,
   ACCESS_CONTROL,
   ERROR_CODES,
+} from 'rn-secure-keystore';
+import type {
   StorageOptions,
   GetItemOptions,
   HardwareSecurityInfo,
@@ -24,6 +26,16 @@ import SecureStorage, {
 interface DemoSection {
   title: string;
   expanded: boolean;
+}
+
+interface SecurityStatusItem {
+  exists: boolean;
+  isHardwareBacked: boolean;
+  securityLevel: string;
+}
+
+interface SecurityStatus {
+  [key: string]: SecurityStatusItem;
 }
 
 const CompleteLibraryDemo = () => {
@@ -36,7 +48,7 @@ const CompleteLibraryDemo = () => {
     null
   );
   const [allKeys, setAllKeys] = useState<string[]>([]);
-  const [securityStatus, setSecurityStatus] = useState<any>({});
+  const [securityStatus, setSecurityStatus] = useState<SecurityStatus>({});
 
   const [withBiometric, setWithBiometric] = useState(false);
   const [securityLevel, setSecurityLevel] = useState<
@@ -68,6 +80,7 @@ const CompleteLibraryDemo = () => {
 
   useEffect(() => {
     initializeDemo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeDemo = async () => {
@@ -200,7 +213,7 @@ const CompleteLibraryDemo = () => {
       showSuccess('setItem Success', `Stored "${key}" successfully!`);
 
       // Add to local state and get detailed info
-      setAllKeys((prev) => [...prev.filter((k) => k !== key), key]);
+      setAllKeys((prev: string[]) => [...prev.filter((k) => k !== key), key]);
       await updateKeyInfo(key);
 
       setKey('');
@@ -263,7 +276,7 @@ const CompleteLibraryDemo = () => {
       showSuccess('removeItem Success', `Removed key: ${keyName}`);
 
       // Update local state by removing the key
-      setAllKeys((prev) => prev.filter((k) => k !== keyName));
+      setAllKeys((prev: string[]) => prev.filter((k) => k !== keyName));
       const newStatus = { ...securityStatus };
       delete newStatus[keyName];
       setSecurityStatus(newStatus);
@@ -470,7 +483,7 @@ const CompleteLibraryDemo = () => {
       const isHardwareBacked = await SecureStorage.isKeyHardwareBacked(keyName);
       const securityLevel = await SecureStorage.getKeySecurityLevel(keyName);
 
-      setSecurityStatus((prev) => ({
+      setSecurityStatus((prev: SecurityStatus) => ({
         ...prev,
         [keyName]: {
           exists: true,
@@ -480,7 +493,7 @@ const CompleteLibraryDemo = () => {
       }));
     } catch (error) {
       console.error(`Error getting info for key ${keyName}:`, error);
-      setSecurityStatus((prev) => ({
+      setSecurityStatus((prev: SecurityStatus) => ({
         ...prev,
         [keyName]: {
           exists: true,
@@ -491,71 +504,6 @@ const CompleteLibraryDemo = () => {
     }
   };
 
-  const testAndroidSecurityLevels = async () => {
-    if (Platform.OS !== 'android') return;
-
-    try {
-      setIsLoading(true);
-
-      // Test Basic vs Hardware vs StrongBox
-      await SecureStorage.setItem('test_basic', 'basic_data');
-      await SecureStorage.setItem('test_hardware', 'hardware_data', {
-        securityLevel: 'hardware',
-        allowFallback: true,
-      });
-
-      let results = ['Android Security Level Comparison:'];
-
-      // Check basic storage
-      const basicHW = await SecureStorage.isKeyHardwareBacked('test_basic');
-      const basicLevel = await SecureStorage.getKeySecurityLevel('test_basic');
-      results.push(`Basic Storage: HW=${basicHW}, Level=${basicLevel}`);
-
-      // Check hardware storage
-      const hardwareHW =
-        await SecureStorage.isKeyHardwareBacked('test_hardware');
-      const hardwareLevel =
-        await SecureStorage.getKeySecurityLevel('test_hardware');
-      results.push(
-        `Hardware Storage: HW=${hardwareHW}, Level=${hardwareLevel}`
-      );
-
-      // Try StrongBox if available
-      try {
-        await SecureStorage.setItem('test_strongbox', 'strongbox_data', {
-          securityLevel: 'strongbox',
-          allowFallback: true,
-        });
-        const strongboxHW =
-          await SecureStorage.isKeyHardwareBacked('test_strongbox');
-        const strongboxLevel =
-          await SecureStorage.getKeySecurityLevel('test_strongbox');
-        results.push(
-          `StrongBox Storage: HW=${strongboxHW}, Level=${strongboxLevel}`
-        );
-      } catch (e) {
-        results.push(`StrongBox Storage: Not available`);
-      }
-
-      // Update UI
-      setAllKeys((prev) => [
-        ...prev.filter((k) => !k.startsWith('test_')),
-        'test_basic',
-        'test_hardware',
-        'test_strongbox',
-      ]);
-      await updateKeyInfo('test_basic');
-      await updateKeyInfo('test_hardware');
-      await updateKeyInfo('test_strongbox');
-
-      showSuccess('Android Security Test', results.join('\n'));
-    } catch (error) {
-      showError('Security Test Error', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const runDemoPreset = async (presetName: string) => {
     try {
       setIsLoading(true);
@@ -563,7 +511,7 @@ const CompleteLibraryDemo = () => {
       if (presetName === 'Basic Storage') {
         await SecureStorage.setItem('demo_basic', 'Hello World!');
         showSuccess('Demo Complete', 'Basic storage completed');
-        setAllKeys((prev) => [
+        setAllKeys((prev: string[]) => [
           ...prev.filter((k) => k !== 'demo_basic'),
           'demo_basic',
         ]);
@@ -578,7 +526,7 @@ const CompleteLibraryDemo = () => {
             authenticatePrompt: 'Demo: Store with biometric',
           });
           showSuccess('Demo Complete', 'Biometric storage completed');
-          setAllKeys((prev) => [
+          setAllKeys((prev: string[]) => [
             ...prev.filter((k) => k !== 'demo_biometric'),
             'demo_biometric',
           ]);
@@ -594,7 +542,7 @@ const CompleteLibraryDemo = () => {
           allowFallback: true,
         });
         showSuccess('Demo Complete', 'Hardware storage completed');
-        setAllKeys((prev) => [
+        setAllKeys((prev: string[]) => [
           ...prev.filter((k) => k !== 'demo_hardware'),
           'demo_hardware',
         ]);
@@ -608,7 +556,7 @@ const CompleteLibraryDemo = () => {
           true
         );
         showSuccess('Demo Complete', 'StrongBox storage completed');
-        setAllKeys((prev) => [
+        setAllKeys((prev: string[]) => [
           ...prev.filter((k) => k !== 'demo_strongbox'),
           'demo_strongbox',
         ]);

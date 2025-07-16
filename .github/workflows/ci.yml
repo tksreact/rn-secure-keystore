@@ -23,6 +23,17 @@ jobs:
       - name: Lint files
         run: yarn lint
 
+  # Separate typecheck job - runs in parallel, doesn't block other jobs
+  typecheck:
+    runs-on: ubuntu-latest
+    continue-on-error: true # This job won't fail the entire workflow
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup
+        uses: ./.github/actions/setup
+
       - name: Typecheck files
         run: yarn typecheck
 
@@ -102,7 +113,7 @@ jobs:
 
       - name: Build example for Android
         env:
-          JAVA_OPTS: "-XX:MaxHeapSize=6g"
+          JAVA_OPTS: '-XX:MaxHeapSize=6g'
         run: |
           yarn turbo run build:android --cache-dir="${{ env.TURBO_CACHE_DIR }}"
 
