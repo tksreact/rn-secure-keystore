@@ -8,6 +8,7 @@
 # VSCode
 .vscode/
 jsconfig.json
+.watchmanconfig
 
 # Xcode
 #
@@ -29,6 +30,7 @@ DerivedData
 *.xcuserstate
 project.xcworkspace
 **/.xcode.env.local
+
 
 # Android/IJ
 #
