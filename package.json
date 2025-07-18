@@ -1,6 +1,6 @@
 {
   "name": "rn-secure-keystore",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A comprehensive, cross-platform React Native wrapper for secure key-value storage using native security features of Android and iOS. It supports **biometric authentication**, **hardware-backed encryption**, and deep platform integrations such as **Android StrongBox**, **EncryptedSharedPreferences**, and iOS Secure Enclave via the Keychain.",
   "source": "./src/index.tsx",
   "main": "./lib/module/index.js",
